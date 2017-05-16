@@ -5,6 +5,7 @@ import net.corda.core.crypto.DigitalSignature
 import net.corda.core.crypto.generateKeyPair
 import net.corda.core.crypto.keys
 import net.corda.core.crypto.sign
+import net.corda.core.node.services.IdentityService
 import net.corda.core.node.services.KeyManagementService
 import net.corda.core.serialization.SingletonSerializeAsToken
 import net.corda.node.utilities.*
@@ -21,7 +22,8 @@ import java.security.PublicKey
  *
  * This class needs database transactions to be in-flight during method calls and init.
  */
-class PersistentKeyManagementService(initialKeys: Set<KeyPair>) : SingletonSerializeAsToken(), KeyManagementService {
+class PersistentKeyManagementService(override val identityService: IdentityService,
+                                     initialKeys: Set<KeyPair>) : SingletonSerializeAsToken(), KeyManagementService {
 
     private object Table : JDBCHashedTable("${NODE_DATABASE_PREFIX}our_key_pairs") {
         val publicKey = publicKey("public_key")

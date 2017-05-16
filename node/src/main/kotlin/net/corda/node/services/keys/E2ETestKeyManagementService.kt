@@ -1,15 +1,17 @@
 package net.corda.node.services.keys
 
 import net.corda.core.ThreadBox
-import net.corda.core.crypto.DigitalSignature
-import net.corda.core.crypto.generateKeyPair
-import net.corda.core.crypto.keys
-import net.corda.core.crypto.sign
+import net.corda.core.crypto.*
+import net.corda.core.identity.AnonymousParty
+import net.corda.core.identity.Party
+import net.corda.core.node.services.IdentityService
 import net.corda.core.node.services.KeyManagementService
 import net.corda.core.serialization.SingletonSerializeAsToken
 import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.security.cert.CertPath
+import java.security.cert.X509Certificate
 import java.util.*
 import javax.annotation.concurrent.ThreadSafe
 
@@ -25,7 +27,8 @@ import javax.annotation.concurrent.ThreadSafe
  * etc.
  */
 @ThreadSafe
-class E2ETestKeyManagementService(initialKeys: Set<KeyPair>) : SingletonSerializeAsToken(), KeyManagementService {
+class E2ETestKeyManagementService(override val identityService: IdentityService,
+                                  initialKeys: Set<KeyPair>) : SingletonSerializeAsToken(), KeyManagementService {
     private class InnerState {
         val keys = HashMap<PublicKey, PrivateKey>()
     }
