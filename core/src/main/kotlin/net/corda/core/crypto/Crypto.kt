@@ -433,7 +433,7 @@ object Crypto {
         if (verificationResult) {
             return true
         } else {
-            throw SignatureException("Signature Verification failed!")
+            throw SignatureException("Signature verification failed for key ${publicKey.toStringShort()}")
         }
     }
 
