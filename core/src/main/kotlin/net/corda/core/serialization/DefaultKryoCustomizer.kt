@@ -106,6 +106,7 @@ object DefaultKryoCustomizer {
             //       than this mess.
             val x509CertObjectClazz = Class.forName("org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject")
             register(x509CertObjectClazz, X509CertificateSerializer)
+            register(sun.security.x509.X509CertImpl::class.java, X509CertificateSerializer)
             register(X500Name::class.java, X500NameSerializer)
 
             register(BCECPrivateKey::class.java, PrivateKeySerializer)
