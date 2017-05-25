@@ -15,6 +15,7 @@ import net.corda.core.node.CordaPluginRegistry
 import net.corda.core.node.PhysicalLocation
 import net.corda.core.node.ServiceEntry
 import net.corda.core.node.services.*
+import net.corda.core.utilities.DUMMY_CA
 import net.corda.core.utilities.DUMMY_NOTARY_KEY
 import net.corda.core.utilities.loggerFor
 import net.corda.node.internal.AbstractNode
@@ -167,7 +168,8 @@ class MockNetwork(private val networkSendManuallyPumped: Boolean = false,
                     .getOrThrow()
         }
 
-        override fun makeIdentityService() = InMemoryIdentityService(mockNet.identities)
+        // TODO: Specify a CA to validate registration against
+        override fun makeIdentityService() = InMemoryIdentityService(mockNet.identities, networkRoot = null)
 
         override fun makeVaultService(dataSourceProperties: Properties): VaultService = NodeVaultService(services, dataSourceProperties)
 

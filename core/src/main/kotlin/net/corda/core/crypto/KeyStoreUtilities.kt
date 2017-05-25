@@ -3,6 +3,8 @@ package net.corda.core.crypto
 import net.corda.core.exists
 import net.corda.core.read
 import net.corda.core.write
+import org.bouncycastle.cert.X509CertificateHolder
+import org.bouncycastle.crypto.util.PublicKeyFactory
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -122,8 +124,9 @@ fun KeyStore.getKeyPair(alias: String, keyPassword: String): KeyPair = getCertif
  * @param keyPassword The password for the PrivateKey (not the store access password).
  */
 fun KeyStore.getCertificateAndKeyPair(alias: String, keyPassword: String): CertificateAndKeyPair {
-    val cert = getCertificate(alias) as X509Certificate
-    return CertificateAndKeyPair(cert, KeyPair(Crypto.toSupportedPublicKey(cert.publicKey), getSupportedKey(alias, keyPassword)))
+    val cert = getX509Certificate(alias)
+    val publicKey = Crypto.decodePublicKey(cert.subjectPublicKeyInfo.encoded)
+    return CertificateAndKeyPair(cert, KeyPair(publicKey, getSupportedKey(alias, keyPassword)))
 }
 
 /**
@@ -131,7 +134,10 @@ fun KeyStore.getCertificateAndKeyPair(alias: String, keyPassword: String): Certi
  * @param alias The name to lookup the Key and Certificate chain from.
  * @return The X509Certificate found in the KeyStore under the specified alias.
  */
-fun KeyStore.getX509Certificate(alias: String): X509Certificate = getCertificate(alias) as X509Certificate
+fun KeyStore.getX509Certificate(alias: String): X509CertificateHolder {
+    val encoded = getCertificate(alias)?.encoded ?: throw IllegalArgumentException("No certificate under alias \"${alias}\"")
+    return X509CertificateHolder(encoded)
+}
 
 /**
  * Extract a private key from a KeyStore file assuming storage alias is known.
