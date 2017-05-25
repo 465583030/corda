@@ -389,21 +389,14 @@ interface KeyManagementService {
 
     /**
      * Generates a new random [KeyPair], adds it to the internal key storage, then generates a corresponding
-     * [X509Certificate] and adds it to the identity service. Returns the X.509 certificate.
+     * [X509Certificate] and adds it to the identity service.
+     *
+     * @param identity identity to generate a key and certificate for. Must be an identity this node has CA privileges for.
+     * @param revocationEnabled whether to check revocation status of certificates in the certificate path.
+     * @return X.509 certificate and path to the trust root.
      */
     @Suspendable
-    fun freshKeyAndCert(identity: Party, revocationEnabled: Boolean): Pair<X509Certificate, CertPath> {
-        val ourPublicKey = freshKey()
-        // FIXME: Use the actual certificate for the identity the flow is presenting themselves as
-        val issuerKey = Crypto.generateKeyPair(X509Utilities.DEFAULT_IDENTITY_SIGNATURE_SCHEME)
-        val issuerCertificate = X509Utilities.createSelfSignedCACertificate(identity.name, issuerKey)
-        val ourCertificate = X509Utilities.createCertificate(CertificateType.IDENTITY, issuerCertificate, issuerKey, identity.name, ourPublicKey)
-        val ourCertPath = X509Utilities.createCertificatePath(issuerCertificate, ourCertificate, revocationEnabled = revocationEnabled)
-        identityService.registerPath(issuerCertificate,
-                AnonymousParty(ourPublicKey),
-                ourCertPath)
-        return Pair(issuerCertificate, ourCertPath)
-    }
+    fun freshKeyAndCert(identity: Party, revocationEnabled: Boolean): Pair<X509Certificate, CertPath>
 
     /** Using the provided signing [PublicKey] internally looks up the matching [PrivateKey] and signs the data.
      * @param bytes The data to sign over using the chosen key.
@@ -416,8 +409,6 @@ interface KeyManagementService {
      */
     @Suspendable
     fun sign(bytes: ByteArray, publicKey: PublicKey): DigitalSignature.WithKey
-
-    val identityService: IdentityService
 }
 
 // TODO: Move to a more appropriate location

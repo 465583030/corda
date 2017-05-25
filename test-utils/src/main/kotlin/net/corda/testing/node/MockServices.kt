@@ -12,6 +12,7 @@ import net.corda.core.serialization.SingletonSerializeAsToken
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.utilities.DUMMY_NOTARY
 import net.corda.node.services.identity.InMemoryIdentityService
+import net.corda.node.services.keys.freshKeyAndCert
 import net.corda.node.services.persistence.InMemoryStateMachineRecordedTransactionMappingStorage
 import net.corda.node.services.schema.HibernateObserver
 import net.corda.node.services.schema.NodeSchemaService
@@ -30,6 +31,8 @@ import java.nio.file.Paths
 import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.security.cert.CertPath
+import java.security.cert.X509Certificate
 import java.time.Clock
 import java.util.*
 import java.util.jar.JarInputStream
@@ -74,7 +77,7 @@ open class MockServices(vararg val keys: KeyPair) : ServiceHub {
     }
 }
 
-class MockKeyManagementService(override val identityService: IdentityService,
+class MockKeyManagementService(val identityService: IdentityService,
                                vararg initialKeys: KeyPair) : SingletonSerializeAsToken(), KeyManagementService {
     private val keyStore: MutableMap<PublicKey, PrivateKey> = initialKeys.associateByTo(HashMap(), { it.public }, { it.private })
 
@@ -87,6 +90,8 @@ class MockKeyManagementService(override val identityService: IdentityService,
         keyStore[k.public] = k.private
         return k.public
     }
+
+    override fun freshKeyAndCert(identity: Party, revocationEnabled: Boolean): Pair<X509Certificate, CertPath> = freshKeyAndCert(this, identityService, identity, revocationEnabled)
 
     private fun getSigningKeyPair(publicKey: PublicKey): KeyPair {
         val pk = publicKey.keys.first { keyStore.containsKey(it) }
